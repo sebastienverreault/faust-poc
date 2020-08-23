@@ -86,6 +86,13 @@ tar -xvzf ~/downloads/kafka.tgz --strip 1
 ~/kafka/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic input
 
 
+# Listen for kafka traffic
+~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_stream --from-beginning
+~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_tokenized_stream --from-beginning
+~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_persistence_stream --from-beginning
+~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_stats_stream --from-beginning
+
+
 # Run the kafka docker-compose
 make kafka
 
