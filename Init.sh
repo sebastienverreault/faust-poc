@@ -92,6 +92,12 @@ tar -xvzf ~/downloads/kafka.tgz --strip 1
 ~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_persistence_stream --from-beginning
 ~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_stats_stream --from-beginning
 
+~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_tokenized_stream --property value.deserializer=org.apache.kafka.connect.json.JsonDeserializer --skip-message-on-error
+~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic weblogs_tokenized_stream --property value.deserializer=org.apache.kafka.connect.json.JsonDeserializer --skip-message-on-error --from-beginning
+
+ --property print.timestamp=true
+
+
 
 # Run the kafka docker-compose
 make kafka

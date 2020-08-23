@@ -17,8 +17,20 @@ class WebLogEntry(faust.Record, serializer='json'):
 
     SUPPORTED_STATUS = [200, 206]
 
+    Timestamp: datetime
+    IpAddress: str
+    UserAgent: str
+    Request: str
+    Status: int
+    OriginalByteRange: str
+    LoByte: int
+    HiByte: int
+    Valid: bool
+
     def Map(row) -> WebLogEntry:
-        ret = WebLogEntry()
+        row.append(0) # need a better way to do this
+        row.append(0)
+        ret = WebLogEntry(*row)
         try:
             ret.Valid = False
             timestamp = f'{row[WebLogEntry.DATE_OFFSET]} {row[WebLogEntry.TIME_OFFSET]}'
