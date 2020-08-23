@@ -78,7 +78,8 @@ weblogs_stats_topic = app.topic("weblogs_stats_stream", value_type=List)
 #
 # Define a table to keep our state
 logs = app.Table('logs', key_type=str, value_type=WebLogReducer, default=WebLogReducer)
-stats = app.Table('stats', key_type=str, value_type=defaultdict, default=defaultdict(int))
+# stats = app.Table('stats', key_type=str, value_type=defaultdict, default=defaultdict(int))
+stats = app.Table('stats', key_type=str, value_type=set, default=set)
 
 
 #
@@ -159,6 +160,16 @@ async def tokenize_weblogs(raw_line_stream):
 #                           "The parameters are: id/key - " + str(key) + json_str_entry)
 
 
+def SafeAdd(k: str, s: set):
+    if k not in s:
+        s.add(k)
+
+
+def SafeRemove(k: str, s: set):
+    if k in s:
+        s.remove(k)
+
+
 #
 # Listen on the "tokenized" topic to get filtered entries
 # Reduce them to keep track of what bytes were delivered
@@ -167,34 +178,41 @@ async def tokenize_weblogs(raw_line_stream):
 @app.agent(weblogs_tokenized_topic)
 async def reduce_weblogs(entry_stream):
     # New Keys in the dictionary should already be a WebLogEntry, so just process it
-    # if entry.Key not in logs:
-    #    logs[entry.Key] = WebLogReducer()
     async for entry in entry_stream:
         try:
-            print(entry)
             logs[entry.Key].ProcessNewEntry(entry)
             # Update our stats
+            completeSet = stats['complete']
+            incompleteSet = stats['incomplete']
+            incompleteNonZeroSet = stats['incompleteNonZero']
+            incompleteNonSingleSet = stats['incompleteNonSingle']
             if logs[entry.Key].IsFileComplete():
-                stats['complete'] = 1
-                stats['incomplete'].pop(entry.Key, None)
-                stats['incompleteNonZero'].pop(entry.Key, None)
-                stats['incompleteNonSingle'].pop(entry.Key, None)
-            elif logs[entry.Key].IsFileIncompleteNonZero():
-                stats['complete'].pop(entry.Key, None)
-                stats['incomplete'] = 1
-                stats['incompleteNonZero'] = 1
-                stats['incompleteNonSingle'].pop(entry.Key, None)
-            elif logs[entry.Key].IsFileIncompleteNonSingle():
-                stats['complete'].pop(entry.Key, None)
-                stats['incomplete'] = 1
-                stats['incompleteNonZero'].pop(entry.Key, None)
-                stats['incompleteNonSingle'] = 1
-            await weblogs_stats_topic.send(value=[
-                len(stats['complete']),
-                len(stats['incomplete']),
-                len(stats['incompleteNonZero']),
-                len(stats['incompleteNonSingle'])
-            ])
+                SafeAdd(entry.Key, completeSet)
+                SafeRemove(entry.Key, incompleteSet)
+                SafeRemove(entry.Key, incompleteNonZeroSet)
+                SafeRemove(entry.Key, incompleteNonSingleSet)
+            else:
+                if logs[entry.Key].IsFileIncompleteNonZero():
+                    SafeRemove(entry.Key, completeSet)
+                    SafeAdd(entry.Key, incompleteSet)
+                    SafeAdd(entry.Key, incompleteNonZeroSet)
+                    SafeRemove(entry.Key, incompleteNonSingleSet)
+                elif logs[entry.Key].IsFileIncompleteNonSingle():
+                    SafeRemove(entry.Key, completeSet)
+                    SafeAdd(entry.Key, incompleteSet)
+                    SafeRemove(entry.Key, incompleteNonZeroSet)
+                    SafeAdd(entry.Key, incompleteNonSingleSet)
+
+            statsList = [
+                len(completeSet),
+                len(incompleteSet),
+                len(incompleteNonZeroSet),
+                len(incompleteNonSingleSet)
+            ]
+
+            print(f"Key='{entry.Key}', stats={statsList}")
+
+            await weblogs_stats_topic.send(value=statsList)
             #
             # Publish for Cassandra type DB
             # await weblogs_persistence_topic.send(id=entry.key, value=logs[entry.Key].ListOfByteRange())
