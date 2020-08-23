@@ -51,8 +51,12 @@ export PATH="/root/anaconda3/bin:$PATH"  # prepends the new path
 conda create -n elk-poc python=3.6
 conda activate elk-poc
 pip install -r requirements.txt
-
 pip install -U faust
+
+#
+conda create -n faust-poc python=3.8
+conda activate faust-poc
+pip install -r requirements.txt
 
 
 # INSTALL PYTHON LIBRARIES

@@ -8,21 +8,21 @@ kafka-elk-down:
 
 # Faust
 run-es-app:
-	@python -m src.es_app -l info
+	@python -m src.es_app worker -l info
 	
 run-es-app-debug:
-	@python -m src.es_app -l debug
+	@python -m src.es_app worker -l debug
 
 #
 run-test-app:
-	@python -m src.test_app -l info
+	@python -m src.test_app worker -l info
 
 run-test-app-debug:
-	@python -m src.test_app -l debug
+	@python -m src.test_app worker -l debug
 
 #
 run-standalone-app:
-	@python -m src.standalone -l info
+	@python -m src.standalone worker -l info
 
 run-standalone-app-debug:
-	@python -m src.standalone -l debug
+	@python -m src.standalone worker -l debug
