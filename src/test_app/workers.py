@@ -4,7 +4,7 @@ app = faust.App(id="test",broker="kafka://localhost:9092", store="memory://")
 
 
 # convenience func for launching the app
-def entry_point() -> None:
+def main() -> None:
     app.main()
 
 

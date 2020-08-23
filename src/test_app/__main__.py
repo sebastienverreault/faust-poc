@@ -1,5 +1,4 @@
-from src.test_app.workers import entry_point
-
+from src.test_app.workers import main
 
 if __name__ == "__main__":
-    entry_point()
+    main()
