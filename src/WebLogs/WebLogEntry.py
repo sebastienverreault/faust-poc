@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import faust
 from datetime import datetime
 
 
-class WebLogEntry(object):
+class WebLogEntry(faust.Record, serializer='json'):
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
     #
     DATE_OFFSET = 0
@@ -100,7 +101,7 @@ class WebLogEntry(object):
 
 
     def __str__(self):
-        return "\t".join((self.Timestamp, self.IpAddress, self.UserAgent, self.Request, self.Status, self.LoByte, self.HiByte))
+        return "\t".join((str(self.Timestamp), self.IpAddress, self.UserAgent, self.Request, str(self.Status), str(self.LoByte), str(self.HiByte)))
 
     def __repr__(self):
         return self.__str__()
