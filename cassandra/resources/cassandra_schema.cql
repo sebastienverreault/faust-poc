@@ -3,7 +3,7 @@ CREATE KEYSPACE weblogs
 		'class': 'SimpleStrategy', 
 		'replication_factor' : 1};
 
-CREATE TABLE weblogs.logs ( 
+CREATE TABLE IF NOT EXISTS weblogs.logs ( 
 	ip_address text,
 	user_agent text,
 	request text,
