@@ -84,8 +84,8 @@ weblogs_stats = app.Table('weblogs_stats', key_type=str, default=set)
 
 #
 # Read weblogs data to simulate sequential arrivals
-# filename = os.path.abspath(r"./src/data/sample.log")
-filename = os.path.abspath(r"./src/data/test_sample.log")
+filename = os.path.abspath(r"./src/data/sample.log")
+# filename = os.path.abspath(r"./src/data/test_sample.log")
 
 
 #
