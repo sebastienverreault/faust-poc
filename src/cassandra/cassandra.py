@@ -3,7 +3,7 @@ from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster, BatchStatement
 from cassandra.query import SimpleStatement
 
-from src.WebLogs import ReducedLog
+from src.WebLogs.ReducedLog import ReducedLog
 
 
 class CassandraDriver:

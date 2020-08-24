@@ -4,8 +4,8 @@ import traceback
 
 from elasticsearch import AsyncElasticsearch
 
-from src.WebLogs import ReducedLog
-from src.WebLogs import ByteRange
+from src.WebLogs.ReducedLog import ReducedLog
+from src.WebLogs.ByteRange import ByteRange
 from src.WebLogs.ByteRange import BRReduce
 from src.WebLogs.WebLogEntry import WebLogEntry
 
