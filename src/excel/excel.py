@@ -23,7 +23,7 @@ class ExcelDriver:
         if len(self.list_of_record) > 0:
             try:
                 with open(self.filename, 'w') as f:
-                    f.write(f'ip_address\tuser_agent\trequest\tbyte_ranges')
+                    f.write(f'ip_address\tuser_agent\trequest\tbyte_ranges\n')
                     for rlv2 in self.list_of_record:
                         f.write(f'{rlv2.IpAddress}\t{rlv2.UserAgent}\t{rlv2.Request}')
                         for r in rlv2.ByteRanges:
