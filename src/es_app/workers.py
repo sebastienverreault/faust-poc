@@ -107,7 +107,7 @@ async def generate_weblogs():
     # Get the current row according to our preserved state
     current_row[0] += 1
     if current_row[0] < max_row:
-        weblogs_data = content[current_row[0]]
+        weblogs_data = content[max_row - current_row[0]]
         # Or just a random sample from the
         # weblogs_sample = df_weblogs.sample(1)
         #
