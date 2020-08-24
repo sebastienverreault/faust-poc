@@ -37,3 +37,4 @@ pandas
 matplotlib
 seaborn
 statsmodels
+cassandra-driver
