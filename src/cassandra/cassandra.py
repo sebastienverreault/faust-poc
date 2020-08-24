@@ -84,13 +84,13 @@ class CassandraDriver:
     def insert_data(self, table_name, rlv2: ReducedLogV2):
         csql = f"INSERT INTO {table_name} (ip_address, user_agent , request, byte_ranges) " \
                f"VALUES ('{rlv2.IpAddress}', '{rlv2.UserAgent}', '{rlv2.Request}', " \
-               f"{[str(x) for x in rlv2.ByteRanges]}) IF NOT EXISTS"
-        print(csql)
+               f"{[str(x) for x in rlv2.ByteRanges]})"
+        # print(csql)
         # insert_sql = self.session.prepare(csql)
         # stmt = BatchStatement()
         # stmt.add(insert_sql, ('data'))
-        stmt = SimpleStatement(csql)
-        self.session.execute(stmt)
+        # stmt = SimpleStatement(csql)
+        self.session.execute(csql)
         self.log.info('Insert Completed')
 
     # def select_data(self):
