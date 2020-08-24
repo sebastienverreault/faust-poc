@@ -163,7 +163,7 @@ async def reduce_weblogs_tokens(tokens):
     async for entry in tokens.group_by(WebLogEntry.Key):
         try:
             # Print entry
-            data = f"<{entry.Key}, {entry.LoByte}-{entry.HiByte}"
+            data = f"<{entry.Key}, {entry.LoByte}, {entry.HiByte}>"
             print(data)
 
             # Process
