@@ -91,7 +91,7 @@ class CassandraDriver:
         # stmt.add(insert_sql, ('data'))
         # stmt = SimpleStatement(csql)
         self.session.execute(csql)
-        self.log.info('Insert Completed')
+        # self.log.info('Insert Completed')
 
     # def select_data(self):
     #     rows = self.session.execute('select * from logs limit 5;')
