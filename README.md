@@ -106,7 +106,7 @@ the infrastructure starts with Kafka as data broker, and main component
 as even if Elasticsearch and Kibana are also live the data is currently not streaming to them.
 A Cassandra database is part of it also and is fed in an exploratory manner.
 
-The code of the streaming application is a python package named Faust that meshes with Kafka 
+The code of the streaming application is a python package named [Faust](https://faust.readthedocs.io/en/latest/)/[on github](https://github.com/robinhood/faust) that meshes with Kafka 
 to allow light workers to be defined and linked thru streaming topics.
 There's a worker on a timer that feeds the data read from file, one line at a time every 10ms.
 Next is a tokenizer that dice the raw text into it's data fields create an object for the algorithm to process.
