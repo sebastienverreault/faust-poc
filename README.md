@@ -158,6 +158,17 @@ So that single docker compose, multi image is a good start.
 Depending on the actual requirements from the users, this type of dynamic data is probably not valuable for very long after that data has been streamed
 unless there's a need for some record keeping at long. 
 So data would likely be on a quick archive delete schedule given that the source data is probably archived longer and can be used to recover the derived one.
-This is just a first thought but it really depdends on the context of usage, regulation, etc.
+This is just a first thought but it really depdends on the context of usage, regulation, etc. Elasticsearch not being a real persistence layer favor that argument also.
+
+Table of options for each phase of the data pipeline
+
+Data Collectors | Message Bus | Processor | Persistence | Presentation
+------------ | ------------- | ------------- | ------------- | -------------
+Logstash | Kafka | Storm | Cassandra | Kibana
+Fluentd | RabbitMQ | Spark | ElasticSearch |
+Flume | ZeroMQ | Flink | |
+NiFi | | Beam | |
+ -   | -  | Faust(Python) | |   
+
 
  
