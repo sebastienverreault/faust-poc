@@ -56,12 +56,15 @@ es = AsyncElasticsearch([ELASTIC_SEARCH_CONF])
 
 
 #
-#
+# Encapsulated Cassandra driver
 drv = CassandraDriver()
 drv.createsession()
 drv.setlogger()
-drv.createkeyspace('weblogs')
-drv.create_table()
+rows = drv.session.execute('SELECT ip_address, user_agent, request, byte_ranges FROM logs')
+for user_row in rows:
+    print(f"{user_row.ip_address}, {user_row.user_agent}, {user_row.request}, {user_row.byte_ranges}")
+# drv.createkeyspace('weblogs')
+# drv.create_table()
 
 #
 # Faust app config
@@ -93,8 +96,8 @@ weblogs_stats = app.Table('weblogs_stats', key_type=str, default=set)
 
 #
 # Read weblogs data to simulate sequential arrivals
-filename = os.path.abspath(r"./src/data/sample.log")
-# filename = os.path.abspath(r"./src/data/test_sample.log")
+# filename = os.path.abspath(r"./src/data/sample.log")
+filename = os.path.abspath(r"./src/data/test_sample.log")
 
 
 #
@@ -206,8 +209,12 @@ async def reduce_weblogs_tokens(tokens):
 # Send stats on that topic for easy monitoring
 @app.agent(weblogs_stats_topic)
 async def weblogs_stats_cassandra_sink(stats):
-    async for entry in stats:
-        #
-        # Publish for Cassandra type DB, save in Cassandra?
-        await drv.insert_data()
-        # await drv.update_data()
+    async for reduced_log in stats:
+        try:
+            #
+            # Publish for Cassandra type DB, save in Cassandra?
+            await drv.insert_data(reduced_log)
+            # await drv.update_data()
+        except Exception as ex:
+            track = traceback.format_exc()
+            print(track)
