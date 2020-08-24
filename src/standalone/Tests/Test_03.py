@@ -43,8 +43,9 @@ class Test_03(object):
         try:
             drv = CassandraDriver()
             drv.createsession()
+            drv.setlogger()
             drv.createkeyspace('weblogs')
-            drv.create_table('Test_04')
+            drv.create_table('Test_03')
             for reducer_key in processor.stats:
                 reducer = processor.stats[reducer_key]
                 lgv2 = reducer.GetAReducedLogV2()

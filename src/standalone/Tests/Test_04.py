@@ -42,6 +42,7 @@ class Test_04(object):
         try:
             drv = CassandraDriver()
             drv.createsession()
+            drv.setlogger()
             drv.createkeyspace('weblogs')
             drv.create_table('Test_04')
             for reducer_key in processor.stats:
