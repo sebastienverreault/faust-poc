@@ -17,6 +17,7 @@ class WebLogEntry(faust.Record, serializer='json'):
 
     SUPPORTED_STATUS = [200, 206]
 
+    Key: str
     Timestamp: datetime
     IpAddress: str
     UserAgent: str
@@ -25,12 +26,11 @@ class WebLogEntry(faust.Record, serializer='json'):
     OriginalByteRange: str
     LoByte: int
     HiByte: int
+    # ByteRange: str
     Valid: bool
 
     def Map(row) -> WebLogEntry:
-        row.append(0) # need a better way to do this
-        row.append(0)
-        ret = WebLogEntry(*row)
+        ret = WebLogEntry('', datetime.now(), '', '', '', 0, '', 0, 0, False)
         try:
             ret.Valid = False
             timestamp = f'{row[WebLogEntry.DATE_OFFSET]} {row[WebLogEntry.TIME_OFFSET]}'
@@ -40,6 +40,8 @@ class WebLogEntry(faust.Record, serializer='json'):
             ret.Request = row[WebLogEntry.REQUEST_OFFSET]
             ret.Status = int(row[WebLogEntry.STATUS_OFFSET])
 
+            ret.Key = "_".join((ret.IpAddress, ret.UserAgent, ret.Request))
+
             if ret.Status not in WebLogEntry.SUPPORTED_STATUS:
                 raise Exception('Unsupported Status: ', f'{ret.Status}')
 
@@ -47,6 +49,8 @@ class WebLogEntry(faust.Record, serializer='json'):
 
             ret.LoByte = int(ret.OriginalByteRange.split('-')[0])
             ret.HiByte = int(ret.OriginalByteRange.split('-')[1])
+
+            # ret.ByteRange = "-".join((ret.LoByte, ret.HiByte))
 
             if ret.LoByte < 0 or ret.HiByte < ret.LoByte:
                 raise Exception('Irregular byte range: ', f'{ret.OriginalByteRange}')
@@ -57,14 +61,14 @@ class WebLogEntry(faust.Record, serializer='json'):
 
         return ret
 
-    def _get_ByteRange(self) -> str:
-        return "-".join((self.LoByte, self.HiByte))
+    # def _get_ByteRange(self) -> str:
+    #     return "-".join((self.LoByte, self.HiByte))
 
-    def _get_Key(self) -> str:
-        return "_".join((self.IpAddress, self.UserAgent, self.Request))
+    # def _get_Key(self) -> str:
+    #     return "_".join((self.IpAddress, self.UserAgent, self.Request))
     
-    ByteRange = property(_get_ByteRange)
-    Key = property(_get_Key)
+    # ByteRange = property(_get_ByteRange)
+    # Key = property(_get_Key)
 
     def IsDissociatedFrom(self, entry: WebLogEntry) -> bool:
         # lo side
