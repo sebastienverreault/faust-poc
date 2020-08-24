@@ -1,5 +1,6 @@
 from collections import deque
 
+from src.WebLogs.ReducedLog import ReducedLogV2
 from src.WebLogs.WebLogEntry import WebLogEntry
 
 
@@ -24,6 +25,15 @@ class WebLogReducer(object):
         for entry in self.stack:
             mylist.append((entry.LoByte, entry.HiByte))
         return mylist
+
+    def GetAReducedLogV2(self):
+        rlv2 = ReducedLogV2()
+        for entry in self.stack:
+            rlv2.IpAddress = entry.IpAddress
+            rlv2.UserAgent = entry.UserAgent
+            rlv2.Request = entry.Request
+            rlv2.ByteRanges.append((entry.LoByte, entry.HiByte))
+        return rlv2
 
     def __Reduce__(self, newEntry: WebLogEntry):
         gotMerged = False

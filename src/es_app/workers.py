@@ -205,16 +205,16 @@ async def reduce_weblogs_tokens(tokens):
 
 
 
-#
-# Send stats on that topic for easy monitoring
-@app.agent(weblogs_stats_topic)
-async def weblogs_stats_cassandra_sink(stats):
-    async for reduced_log in stats:
-        try:
-            #
-            # Publish for Cassandra type DB, save in Cassandra?
-            await drv.insert_data(reduced_log)
-            # await drv.update_data()
-        except Exception as ex:
-            track = traceback.format_exc()
-            print(track)
+# #
+# # Send stats on that topic for easy monitoring
+# @app.agent(weblogs_stats_topic)
+# async def weblogs_stats_cassandra_sink(stats):
+#     async for reduced_log in stats:
+#         try:
+#             #
+#             # Publish for Cassandra type DB, save in Cassandra?
+#             await drv.insert_data(reduced_log)
+#             # await drv.update_data()
+#         except Exception as ex:
+#             track = traceback.format_exc()
+#             print(track)

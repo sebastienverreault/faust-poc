@@ -1,3 +1,5 @@
+import traceback
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -6,6 +8,7 @@ import statsmodels as sm
 
 from src.WebLogs.WebLogEntry import WebLogEntry
 from src.WebLogs.WebLogProcessor import WebLogProcessor
+from src.cassandra.cassandra import CassandraDriver
 
 
 class Test_01(object):
@@ -15,23 +18,6 @@ class Test_01(object):
     def run(self):
         # load raw data
         df = raw_data = pd.read_csv(self.filename, delimiter='\t')
-
-        # Now done inside WebLogEntry.Map() which makes more sense
-        # remove non [200, 206] status code
-        # is_status_200_206 = (raw_data['status'] == 200) | (raw_data['status'] == 206)
-        # df = raw_data[is_status_200_206]
-
-        # # re-index for fun
-        # df.reset_index(inplace=True, drop=True)
-
-        # split byte
-        # byte_range_split = df['byte_range'].str.split('-', n = 1, expand = True)
-        # df['from_by'] = byte_range_split[0]
-        # df['to_byte'] = byte_range_split[1]
-
-        # Now done inside WebLogEntry.Map() which makes more sense
-        # df.loc[:, 'from_by'] = df['byte_range'].apply(lambda x: x.split('-')[0])
-        # df.loc[:, 'to_byte'] = df['byte_range'].apply(lambda x: x.split('-')[1])
 
         webLogs = []
         for row in df.itertuples(index=False):
@@ -48,5 +34,20 @@ class Test_01(object):
             # print some stats
             processor.PrintSomeStats()
 
-        # print extra stats on imcomplete
+        # print extra stats on incomplete
         processor.PrintSomeMoreStatsOnIncompletes()
+
+        # Create a table in Cassandra for our results & save them
+        # Will not be fully workable, but good enough for poc
+        try:
+            drv = CassandraDriver()
+            drv.createsession()
+            drv.createkeyspace('weblogs')
+            drv.create_table('Test_04')
+            for reducer_key in processor.stats:
+                reducer = processor.stats[reducer_key]
+                lgv2 = reducer.GetAReducedLogV2()
+                drv.insert_data(lgv2)
+        except Exception as ex:
+            track = traceback.format_exc()
+            print(track)

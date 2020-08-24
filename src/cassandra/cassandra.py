@@ -6,7 +6,7 @@ from cassandra.cluster import Cluster, ExecutionProfile, EXEC_PROFILE_DEFAULT
 from cassandra.policies import WhiteListRoundRobinPolicy, DowngradingConsistencyRetryPolicy
 from cassandra.query import tuple_factory
 
-from src.WebLogs.ReducedLog import ReducedLog
+from src.WebLogs.ReducedLog import ReducedLog, ReducedLogV2
 
 
 class CassandraDriver:
@@ -70,22 +70,21 @@ class CassandraDriver:
         self.log.info("setting keyspace...")
         self.session.set_keyspace(keyspace)
 
-    def create_table(self):
-        c_sql = """
-                    CREATE TABLE IF NOT EXISTS weblogs.logs (
+    def create_table(self, table_name):
+        c_sql = f"""CREATE TABLE IF NOT EXISTS {table_name} (
                         ip_address text,
                         user_agent text,
                         request text,
                         byte_ranges list<text>,
-                        PRIMARY KEY (ip_address, user_agent, request)                    );
-                 """
+                        PRIMARY KEY (ip_address, user_agent, request));"""
         self.session.execute(c_sql)
         self.log.info("Table Created !!!")
 
     # lets do some batch insert
-    def insert_data(self, data: ReducedLog):
+    def insert_data(self, rlv2: ReducedLogV2):
         csql = f"INSERT INTO logs (ip_address, user_agent , request, byte_ranges) " \
-               f"VALUES ('{data.IpAddress}', '{data.UserAgent}', '{data.Request}', ['{data.LoByte,}, {data.HiByte}']) IF NOT EXISTS"
+               f"VALUES ('{rlv2.IpAddress}', '{rlv2.UserAgent}', '{rlv2.Request}', " \
+               f"['{[str(x) for x in rlv2.ByteRanges]}']) IF NOT EXISTS"
         # insert_sql = self.session.prepare(csql)
         # stmt = BatchStatement()
         # stmt.add(insert_sql, ('data'))
