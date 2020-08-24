@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import faust
+from typing import List
 
 
 class ByteRange(faust.Record, serializer='json'):
@@ -53,3 +54,43 @@ class ByteRange(faust.Record, serializer='json'):
         return self.__str__()
 
 
+def BRReduce(br_list: List[ByteRange], new_br: ByteRange):
+    gotMerged = False
+    for a_br in br_list:
+        # Is new overlapping on the hi side of the other?
+        if new_br.IsOverlappingOnHiOf(a_br):
+            # overlapping!  update byte_range
+            a_br.SetLoHi(a_br.LoByte, new_br.HiByte)
+            gotMerged = True
+            break
+
+        # Is new overlapping on the lo side of the other?
+        if new_br.IsOverlappingOnLoOf(a_br):
+            # overlapping!  update byte_range
+            a_br.SetLoHi(new_br.LoByte, a_br.HiByte)
+            gotMerged = True
+            break
+
+        # Is new fully contained in the other?
+        if new_br.IsContainedIn(a_br):
+            # contained, drop new, we received no new information -> leave
+            gotMerged = True
+            break
+
+        # Is new fully containing the other?
+        if new_br.IsContaining(a_br):
+            # fully containing, update byte_range with new, we received no new information
+            a_br.SetLoHi(new_br.LoByte, new_br.HiByte)
+            gotMerged = True
+            break
+
+        # Is new totally dissociated (below or above) from the other?
+        if new_br.IsDissociatedFrom(a_br):
+            # new byte_range, continue
+            pass
+
+    if gotMerged:
+        if len(br_list) > 1:
+            Reduce(br_list.pop())
+    else:
+        br_list.append(new_br)
