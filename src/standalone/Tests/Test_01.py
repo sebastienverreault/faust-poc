@@ -48,7 +48,7 @@ class Test_01(object):
             for reducer_key in processor.stats:
                 reducer = processor.stats[reducer_key]
                 lgv2 = reducer.GetAReducedLogV2()
-                drv.insert_data(lgv2)
+                drv.insert_data('Test_01', lgv2)
         except Exception as ex:
             track = traceback.format_exc()
             print(track)

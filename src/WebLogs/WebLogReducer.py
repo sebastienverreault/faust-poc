@@ -27,7 +27,7 @@ class WebLogReducer(object):
         return mylist
 
     def GetAReducedLogV2(self):
-        rlv2 = ReducedLogV2()
+        rlv2 = ReducedLogV2('','','')
         for entry in self.stack:
             rlv2.IpAddress = entry.IpAddress
             rlv2.UserAgent = entry.UserAgent

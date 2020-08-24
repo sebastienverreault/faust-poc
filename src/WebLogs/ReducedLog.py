@@ -14,8 +14,8 @@ class ReducedLog(faust.Record, serializer='json'):
 
 
 class ReducedLogV2(faust.Record, serializer='json'):
-    IpAddress: str
-    UserAgent: str
-    Request: str
+    IpAddress: str = ''
+    UserAgent: str = ''
+    Request: str = ''
     ByteRanges: List[Tuple] = []
 
