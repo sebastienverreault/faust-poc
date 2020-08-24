@@ -1,0 +1,41 @@
+@startuml
+!include <cloudinsight/kafka>
+!include <cloudinsight/cassandra>
+
+!include <elastic/common>
+!include <elastic/elasticsearch/elasticsearch>
+!include <elastic/logstash/logstash>
+!include <elastic/kibana/kibana>
+
+ELASTICSEARCH(ElasticSearch, "Search and Analyze", database)
+LOGSTASH(Logstash, "Alternate DataCollector", node)
+KIBANA(Kibana, "Visualize", agent) 
+
+title Streaming Architecture
+
+skinparam monochrome true
+
+database "sample.log\n\n" as file
+
+rectangle "DataCollector\n\n" as datasource
+rectangle "Tokenizer\n\n" as tokenizer
+rectangle "Reducer\n\n" as reducer
+
+queue "<$kafka>\nkafka1" as kafka1
+queue "<$kafka>\nkafka2" as kafka2
+queue "<$kafka>\nkafka3" as kafka3
+database "<$cassandra>\nCassandra" as cassandra
+
+file -> datasource
+datasource -> kafka1
+kafka1 -> tokenizer
+tokenizer --> kafka2
+tokenizer -> kafka3
+
+Logstash --> kafka1
+kafka2 -> ElasticSearch
+ElasticSearch -> Kibana
+
+kafka3 -> reducer
+reducer -> cassandra
+@enduml
