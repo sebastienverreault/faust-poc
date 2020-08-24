@@ -1,12 +1,11 @@
-import faust
+from collections import deque
+
 from src.WebLogs.WebLogEntry import WebLogEntry
 
 
-class WebLogReducer(faust.Record, serializer='json', validation=True):
-    stack: list = []
-
-    # def __init__(self):
-    #     self.stack = deque()
+class WebLogReducer(object):
+    def __init__(self):
+        self.stack = deque()
 
     def IsFileComplete(self) -> bool:
         return len(self.stack) == 1 and self.stack[-1].LoByte == 0
@@ -28,6 +27,8 @@ class WebLogReducer(faust.Record, serializer='json', validation=True):
 
     def __Reduce__(self, newEntry: WebLogEntry):
         gotMerged = False
+
+        # work
         for entry in self.stack:
             # Is new overlapping on the hi side of the other?
             if newEntry.IsOverlappingOnHiOf(entry):
