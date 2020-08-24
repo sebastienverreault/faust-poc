@@ -168,7 +168,7 @@ Logstash | Kafka | Storm | Cassandra | Kibana
 Fluentd | RabbitMQ | Spark | ElasticSearch |
 Flume | ZeroMQ | Flink | |
 NiFi | | Beam | |
- -   | -  | Faust(Python) | |   
+ | | Faust(Python) | |   
 
 
  
