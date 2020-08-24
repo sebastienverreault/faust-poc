@@ -2,21 +2,21 @@ import faust
 import logging
 import traceback
 
-from collections import defaultdict
 from elasticsearch import AsyncElasticsearch
-from elasticsearch.exceptions import ElasticsearchException
 
-from src.WebLogs.ByteRange import ByteRange
+from src.WebLogs import ReducedLog
+from src.WebLogs import ByteRange
 from src.WebLogs.ByteRange import BRReduce
 from src.WebLogs.WebLogEntry import WebLogEntry
 
 from typing import List
 
-import json
 import os
 
 #
 # Starting
+from src.cassandra.cassandra import CassandraDriver
+
 logging.info("Starting WebLogs stream processor worker")
 
 #
@@ -54,6 +54,15 @@ ELASTICSEARCH_DOCUMENT_TYPE  = "comment"
 # Elasticsearch object init
 es = AsyncElasticsearch([ELASTIC_SEARCH_CONF])
 
+
+#
+#
+drv = CassandraDriver()
+drv.createsession()
+drv.setlogger()
+drv.createkeyspace('weblogs')
+drv.create_table()
+
 #
 # Faust app config
 app = faust.App(
@@ -73,7 +82,7 @@ def main() -> None:
 # Create topics we will use in the pipeline
 weblogs_topic = app.topic("weblogs", value_type=str)
 weblogs_token_topic = app.topic("weblogs_tokens", value_type=WebLogEntry)
-weblogs_stats_topic = app.topic("weblogs_stats", value_type=str)
+weblogs_stats_topic = app.topic("weblogs_stats", value_type=ReducedLog)
 weblogs_persistence_topic = app.topic("weblogs_persistence_stream", value_type=List)
 
 #
@@ -178,24 +187,27 @@ async def reduce_weblogs_tokens(tokens):
             # Print result
             state = f"<{entry.Key}, {[str(x) for x in byte_range_list]}>"
             print(state)
+            #
+            # Should really be putting the list of byte_range, but that going to be another iteration
+            rl = ReducedLog(IpAddress=entry.IpAddress, UserAgent=entry.UserAgent, Request=entry.Request,
+                            LoByte=entry.LoByte, HiByte=entry.HiByte)
 
             # Send info on stats monitoring topic
-            await weblogs_stats_topic.send(value=state)
-
-            #
-            # Publish for Cassandra type DB, save in Cassandra?
-            # await weblogs_persistence_topic.send(id=entry.key, value=entry_list.ListOfByteRange())
+            await weblogs_stats_topic.send(value=rl)
         except Exception as ex:
             track = traceback.format_exc()
             print(track)
+            print(f"For entry = <{entry}>")
 
 
 
 
-# #
-# # Send stats on that topic for easy monitoring
-# @app.agent(weblogs_stats_topic)
-# async def print_stats(stats):
-#     print(f"Completed # files: {stats[0]} Incomplete # files: {stats[1]} " +
-#           f"( Missing in Start {stats[2]}, Missing in Middle {stats[3]})")
-#     #await weblogs_stats_topic.send(value=1)
+#
+# Send stats on that topic for easy monitoring
+@app.agent(weblogs_stats_topic)
+async def weblogs_stats_cassandra_sink(stats):
+    async for entry in stats:
+        #
+        # Publish for Cassandra type DB, save in Cassandra?
+        await drv.insert_data()
+        # await drv.update_data()
