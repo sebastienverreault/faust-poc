@@ -180,7 +180,7 @@ async def reduce_weblogs_tokens(tokens):
         try:
             # Print entry
             data = f"reduce_weblogs_tokens rx entry : <{entry.Key}, {entry.LoByte}, {entry.HiByte}>"
-            print(data)
+            logging.info(data)
 
             # Process
             byte_range_list = weblogs_tokens[entry.Key]
@@ -190,13 +190,13 @@ async def reduce_weblogs_tokens(tokens):
 
             # Print result
             state = f"<{entry.Key}, {[str(x) for x in byte_range_list]}>"
-            print(state)
+            logging.info(state)
             #
             # Should really be putting the list of byte_range, but that going to be another iteration
             rl = ReducedLog(IpAddress=entry.IpAddress, UserAgent=entry.UserAgent, Request=entry.Request,
                             LoByte=entry.LoByte, HiByte=entry.HiByte)
 
-            print(f"reduce_weblogs_tokens -> json entry: <{rl}>")
+            logging.info(f"reduce_weblogs_tokens tx rl: <{rl}>")
             # Send info on stats monitoring topic
             await weblogs_stats_topic.send(value=rl)
         except Exception as ex:
