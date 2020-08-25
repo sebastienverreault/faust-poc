@@ -15,7 +15,6 @@ from src.WebLogs.WebLogJson import WebLogJson
 
 from typing import List
 
-# import json
 import os
 
 #
@@ -49,10 +48,7 @@ ELASTIC_SEARCH_CONF = {
 #
 # Elasticsearch indexes we will use
 RAW_ELASTICSEARCH_DOCUMENT_INDEX = "raw_weblogs"
-RAW_ELASTICSEARCH_DOCUMENT_TYPE  = "raw_logs"           # still relevant?
-
 REDUCED_ELASTICSEARCH_DOCUMENT_INDEX = "reduced_weblogs"
-REDUCED_ELASTICSEARCH_DOCUMENT_TYPE  = "reduced_logs"   # still relevant?
 
 #
 # Elasticsearch object init
@@ -149,8 +145,9 @@ async def tokenize_weblogs(weblogs):
             if entry.Valid:
                 await weblogs_token_topic.send(key=entry.Key, value=entry)
         except Exception as ex:
-            track = traceback.format_exc()
-            print(track)
+            logging.exception(f"Exception has been caught in tokenize_weblogs(): {str(ex)}" +
+                              f"The stack is: {traceback.format_exc()}")
+
 
 
 #
@@ -161,14 +158,9 @@ async def weblogs_elasticsearch_sink(tokens):
     async for entry in tokens.group_by(WebLogEntry.Key):
         try:
             key = entry.Key
-            print(f"weblogs_elasticsearch_sink -> rx entry: <{entry}>")
-            print(f"weblogs_elasticsearch_sink -> rx faust.utils.json.dumps(entry): <{faust.utils.json.dumps(entry)}>")
             json_str_entry = faust.utils.json.dumps(entry)
-            print(json_str_entry)
-            print(f"weblogs_elasticsearch_sink -> json entry: <{json_str_entry}>")
             response = await es.index(
                 index=RAW_ELASTICSEARCH_DOCUMENT_INDEX,
-                #doc_type=RAW_ELASTICSEARCH_DOCUMENT_TYPE,
                 id=key,
                 body=json_str_entry)
             failed = response.get("_shards", {}).get("failed")
@@ -176,8 +168,8 @@ async def weblogs_elasticsearch_sink(tokens):
                 logging.error("Elasticsearch request failed with the following error: " +
                               str(response) + "The parameters were, id/key: " + str(key) +
                               " body/value: " + str(json_str_entry))
-        except ElasticsearchException as e:
-            logging.exception("An Elasticsearch exception has been caught :" + str(e) +
+        except ElasticsearchException as ex:
+            logging.exception("An Elasticsearch exception has been caught :" + str(ex) +
                               "The parameters are: id/key - " + str(key) + json_str_entry)
 
 
@@ -208,9 +200,9 @@ async def reduce_weblogs_tokens(tokens):
             # Send info on stats monitoring topic
             await weblogs_stats_topic.send(value=rl)
         except Exception as ex:
-            track = traceback.format_exc()
-            print(track)
-            print(f"For entry = <{entry}>")
+            logging.exception(f"Exception has been caught in reduce_weblogs_tokens(): {str(ex)}" +
+                              f"The stack is: {traceback.format_exc()}" +
+                              f"For entry = <{entry}>")
 
 
 #
@@ -220,13 +212,10 @@ async def reduce_weblogs_tokens(tokens):
 async def weblogs_stats_elasticsearch_sink(reduced_logs):
     async for rl in reduced_logs:
         try:
-            print(f"weblogs_stats_elasticsearch_sink -> rx reduced_logs: <{rl}>")
             key = "_".join((rl.IpAddress, rl.UserAgent, rl.Request))
             json_str_rl = faust.utils.json.dumps(rl)
-            print(f"weblogs_stats_elasticsearch_sink -> json reduced_logs: <{json_str_rl}>")
             response = await es.index(
                 index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,
-                #doc_type=REDUCED_ELASTICSEARCH_DOCUMENT_TYPE,
                 id=key,
                 body=json_str_rl)
             failed = response.get("_shards", {}).get("failed")
@@ -234,8 +223,8 @@ async def weblogs_stats_elasticsearch_sink(reduced_logs):
                 logging.error("Elasticsearch request failed with the following error: " +
                               str(response) + "The parameters were, id/key: " + str(key) +
                               " body/value: " + str(json_str_rl))
-        except ElasticsearchException as e:
-            logging.exception("An Elasticsearch exception has been caught :" + str(e) +
+        except ElasticsearchException as ex:
+            logging.exception("An Elasticsearch exception has been caught :" + str(ex) +
                               "The parameters are: id/key - " + str(key) + json_str_rl)
 
 # #
@@ -249,5 +238,6 @@ async def weblogs_stats_elasticsearch_sink(reduced_logs):
 #             await drv.insert_data(reduced_log)
 #             # await drv.update_data()
 #         except Exception as ex:
-#             track = traceback.format_exc()
-#             print(track)
+#             logging.exception(f"Exception has been caught in weblogs_stats_cassandra_sink(): {str(ex)}" +
+#                               f"The stack is: {traceback.format_exc()}" +
+#                               f"For reduced_log = <{reduced_log}>")
