@@ -94,7 +94,7 @@ weblogs_persistence_topic = app.topic("weblogs_persistence", value_type=List)
 #
 # Define a table to keep our state
 weblogs_tokens = app.Table('weblogs_tokens', key_type=str, default=list)
-weblogs_stats = app.Table('weblogs_stats', key_type=str, default=set)
+# weblogs_stats = app.Table('weblogs_stats', key_type=str, default=set)
 
 
 #
@@ -185,7 +185,7 @@ async def reduce_weblogs_tokens(tokens):
     async for entry in tokens.group_by(WebLogEntry.Key):
         try:
             # Print entry
-            data = f"<{entry.Key}, {entry.LoByte}, {entry.HiByte}>"
+            data = f"reduce_weblogs_tokens rx entry : <{entry.Key}, {entry.LoByte}, {entry.HiByte}>"
             print(data)
 
             # Process
@@ -202,6 +202,7 @@ async def reduce_weblogs_tokens(tokens):
             rl = ReducedLog(IpAddress=entry.IpAddress, UserAgent=entry.UserAgent, Request=entry.Request,
                             LoByte=entry.LoByte, HiByte=entry.HiByte)
 
+            print(f"reduce_weblogs_tokens -> json entry: <{rl}>")
             # Send info on stats monitoring topic
             await weblogs_stats_topic.send(value=rl)
         except Exception as ex:

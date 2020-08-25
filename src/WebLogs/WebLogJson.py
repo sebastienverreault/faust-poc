@@ -15,11 +15,11 @@ class WebLogJson(faust.Record, serializer='json'):
 
 def GetJson(obj: WebLogEntry):
     return WebLogJson(
-        Timestamp = str(obj.Timestamp),
-        IpAddress = obj.IpAddress,
-        UserAgent = obj.UserAgent,
-        Request = obj.Request,
-        Status = obj.Status,
-        LoByte = obj.LoByte,
-        HiByte = obj.HiByte
+        Timestamp=str(obj.Timestamp),
+        IpAddress=obj.IpAddress,
+        UserAgent=obj.UserAgent,
+        Request=obj.Request,
+        Status=obj.Status,
+        LoByte=obj.LoByte,
+        HiByte=obj.HiByte
     )
