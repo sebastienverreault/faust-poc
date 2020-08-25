@@ -210,11 +210,11 @@ async def reduce_weblogs_tokens(tokens):
 # Listen on the reduced topic to get filtered entries
 # Package them and send to elasticsearch for indexing there
 @app.agent(weblogs_stats_topic)
-async def weblogs_elasticsearch_sink(tokens):
-    async for entry in tokens.group_by(WebLogEntry.Key):
+async def weblogs_elasticsearch_sink(reduced_logs):
+    async for rl in reduced_logs:
         try:
-            key = entry.Key
-            json_str_entry = json.dumps(entry)
+            key = "_".join((reduced_logs.IpAddress, reduced_logs.UserAgent, reduced_logs.Request))
+            json_str_entry = json.dumps(rl)
             print(json_str_entry)
             response = await es.index(
                 index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,
