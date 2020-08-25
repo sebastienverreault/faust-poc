@@ -1,8 +1,5 @@
-from __future__ import annotations
-
-from typing import List, Tuple
-
 import faust
+from typing import List, Tuple
 
 
 class ReducedLog(faust.Record, serializer='json'):

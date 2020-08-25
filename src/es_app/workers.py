@@ -17,6 +17,7 @@ import os
 
 #
 # Starting
+from src.WebLogs.WebLogJson import WebLogJson
 from src.cassandra.cassandra import CassandraDriver
 
 logging.info("Starting WebLogs stream processor worker")
@@ -160,7 +161,7 @@ async def weblogs_elasticsearch_sink(tokens):
         try:
             key = entry.Key
             print(f"weblogs_elasticsearch_sink -> rx entry: <{entry}>")
-            json_str_entry = json.dumps(entry)
+            json_str_entry = json.dumps(WebLogJson.GetJson(entry))
             print(json_str_entry)
             print(f"weblogs_elasticsearch_sink -> json entry: <{json_str_entry}>")
             response = await es.index(
