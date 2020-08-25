@@ -3,6 +3,7 @@ import logging
 import traceback
 
 from elasticsearch import AsyncElasticsearch
+from elasticsearch.exceptions import ElasticsearchException
 
 from src.WebLogs.ReducedLog import ReducedLog
 from src.WebLogs.ByteRange import ByteRange
@@ -11,6 +12,7 @@ from src.WebLogs.WebLogEntry import WebLogEntry
 
 from typing import List
 
+import json
 import os
 
 #
@@ -44,11 +46,11 @@ ELASTIC_SEARCH_CONF = {
 
 #
 # Elasticsearch indexes we will use
-ELASTICSEARCH_DOCUMENT_INDEX = "reduced_weblogs"
-ELASTICSEARCH_DOCUMENT_TYPE  = "comment"
+RAW_ELASTICSEARCH_DOCUMENT_INDEX = "raw_weblogs"
+RAW_ELASTICSEARCH_DOCUMENT_TYPE  = "raw_logs"           # still relevant?
 
-ELASTICSEARCH_DOCUMENT_INDEX = "raw_weblogs"
-ELASTICSEARCH_DOCUMENT_TYPE  = "comment"
+REDUCED_ELASTICSEARCH_DOCUMENT_INDEX = "reduced_weblogs"
+REDUCED_ELASTICSEARCH_DOCUMENT_TYPE  = "reduced_logs"   # still relevant?
 
 #
 # Elasticsearch object init
@@ -148,28 +150,29 @@ async def tokenize_weblogs(weblogs):
             print(track)
 
 
-# #
-# # Listen on the "tokenized" topic to get filtered entries
-# # Package them and send to elasticsearch for indexing there
-# @app.agent(weblogs_token_topic)
-# async def weblogs_elasticsearch_sink(tokens):
-#     async for entry in tokens.group_by(WebLogEntry.Key):
-#         try:
-#             key = entry.Key
-#             json_str_entry = json.dumps(entry)
-#             response = await es.index(
-#                 index=ELASTICSEARCH_DOCUMENT_INDEX,
-#                 doc_type=ELASTICSEARCH_DOCUMENT_TYPE,
-#                 id=key,
-#                 body=json_str_entry)
-#             failed = response.get("_shards", {}).get("failed")
-#             if failed:
-#                 logging.error("Elasticsearch request failed with the following error: " +
-#                               str(response) + "The parameters were, id/key: " + str(key) +
-#                               " body/value: " + str(json_str_entry))
-#         except ElasticsearchException as e:
-#             logging.exception("An Elasticsearch exception has been caught :" + str(e) +
-#                               "The parameters are: id/key - " + str(key) + json_str_entry)
+#
+# Listen on the "tokenized" topic to get raw  entries
+# Package them and send to elasticsearch for indexing there
+@app.agent(weblogs_token_topic)
+async def weblogs_elasticsearch_sink(tokens):
+    async for entry in tokens.group_by(WebLogEntry.Key):
+        try:
+            key = entry.Key
+            json_str_entry = json.dumps(entry)
+            print(json_str_entry)
+            response = await es.index(
+                index=RAW_ELASTICSEARCH_DOCUMENT_INDEX,
+                #doc_type=RAW_ELASTICSEARCH_DOCUMENT_TYPE,
+                id=key,
+                body=json_str_entry)
+            failed = response.get("_shards", {}).get("failed")
+            if failed:
+                logging.error("Elasticsearch request failed with the following error: " +
+                              str(response) + "The parameters were, id/key: " + str(key) +
+                              " body/value: " + str(json_str_entry))
+        except ElasticsearchException as e:
+            logging.exception("An Elasticsearch exception has been caught :" + str(e) +
+                              "The parameters are: id/key - " + str(key) + json_str_entry)
 
 
 @app.agent(weblogs_token_topic)
@@ -203,7 +206,29 @@ async def reduce_weblogs_tokens(tokens):
             print(f"For entry = <{entry}>")
 
 
-
+#
+# Listen on the reduced topic to get filtered entries
+# Package them and send to elasticsearch for indexing there
+@app.agent(weblogs_stats_topic)
+async def weblogs_elasticsearch_sink(tokens):
+    async for entry in tokens.group_by(WebLogEntry.Key):
+        try:
+            key = entry.Key
+            json_str_entry = json.dumps(entry)
+            print(json_str_entry)
+            response = await es.index(
+                index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,
+                #doc_type=REDUCED_ELASTICSEARCH_DOCUMENT_TYPE,
+                id=key,
+                body=json_str_entry)
+            failed = response.get("_shards", {}).get("failed")
+            if failed:
+                logging.error("Elasticsearch request failed with the following error: " +
+                              str(response) + "The parameters were, id/key: " + str(key) +
+                              " body/value: " + str(json_str_entry))
+        except ElasticsearchException as e:
+            logging.exception("An Elasticsearch exception has been caught :" + str(e) +
+                              "The parameters are: id/key - " + str(key) + json_str_entry)
 
 # #
 # # Send stats on that topic for easy monitoring
