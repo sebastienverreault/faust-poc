@@ -162,9 +162,8 @@ async def weblogs_elasticsearch_sink(tokens):
         try:
             key = entry.Key
             print(f"weblogs_elasticsearch_sink -> rx entry: <{entry}>")
-            print(f"weblogs_elasticsearch_sink -> rx entry.__dict__: <{entry.__dict__}>")
-            print(f"weblogs_elasticsearch_sink -> rx faust.utils.json.dumps(entry.__dict__): <{faust.utils.dumps(entry.__dict__)}>")
-            json_str_entry = faust.utils.json.dumps(entry.__dict__)
+            print(f"weblogs_elasticsearch_sink -> rx faust.utils.json.dumps(entry): <{faust.utils.json.dumps(entry)}>")
+            json_str_entry = faust.utils.json.dumps(entry)
             print(json_str_entry)
             print(f"weblogs_elasticsearch_sink -> json entry: <{json_str_entry}>")
             response = await es.index(

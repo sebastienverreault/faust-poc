@@ -18,10 +18,10 @@
           "type": "integer"
         },
         "LoByte": {
-          "type": "integer_range"
+          "type": "integer"
         },
         "HiByte": {
-          "type": "integer_range"
+          "type": "integer"
         }
       }
     }
