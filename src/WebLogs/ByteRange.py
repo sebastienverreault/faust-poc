@@ -4,7 +4,7 @@ import faust
 from typing import List
 
 
-class ByteRange(faust.Record, serializer='json'):
+class ByteRange(faust.Record):
     LoByte: int
     HiByte: int
 

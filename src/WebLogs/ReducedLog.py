@@ -2,7 +2,7 @@ import faust
 from typing import List, Tuple
 
 
-class ReducedLog(faust.Record, serializer='json'):
+class ReducedLog(faust.Record):
     IpAddress: str
     UserAgent: str
     Request: str
@@ -10,7 +10,7 @@ class ReducedLog(faust.Record, serializer='json'):
     HiByte: int
 
 
-class ReducedLogV2(faust.Record, serializer='json'):
+class ReducedLogV2(faust.Record):
     IpAddress: str = ''
     UserAgent: str = ''
     Request: str = ''

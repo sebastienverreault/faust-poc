@@ -4,7 +4,7 @@ import faust
 from datetime import datetime
 
 
-class WebLogEntry(faust.Record, serializer='json'):
+class WebLogEntry(faust.Record):
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
     #
     DATE_OFFSET = 0

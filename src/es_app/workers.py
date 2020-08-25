@@ -147,22 +147,10 @@ async def tokenize_weblogs(weblogs):
             entry = WebLogEntry.Map(tokens)
             print(f"Sent entry:<{entry}>")
             if entry.Valid:
-                await weblogs_token_topic.send(value=entry)
+                await weblogs_token_topic.send(key=entry.Key, value=entry)
         except Exception as ex:
             track = traceback.format_exc()
             print(track)
-
-
-def GetJson(obj: WebLogEntry):
-    return WebLogJson(
-        Timestamp=str(obj.Timestamp),
-        IpAddress=obj.IpAddress,
-        UserAgent=obj.UserAgent,
-        Request=obj.Request,
-        Status=obj.Status,
-        LoByte=obj.LoByte,
-        HiByte=obj.HiByte
-    )
 
 
 #
@@ -174,7 +162,9 @@ async def weblogs_elasticsearch_sink(tokens):
         try:
             key = entry.Key
             print(f"weblogs_elasticsearch_sink -> rx entry: <{entry}>")
-            json_str_entry = json.dumps(GetJson(entry))
+            print(f"weblogs_elasticsearch_sink -> rx entry.__dict__: <{entry.__dict__}>")
+            print(f"weblogs_elasticsearch_sink -> rx json.dumps(entry.__dict__): <{json.dumps(entry.__dict__)}>")
+            json_str_entry = json.dumps(entry.__dict__)
             print(json_str_entry)
             print(f"weblogs_elasticsearch_sink -> json entry: <{json_str_entry}>")
             response = await es.index(
@@ -231,8 +221,8 @@ async def reduce_weblogs_tokens(tokens):
 async def weblogs_stats_elasticsearch_sink(reduced_logs):
     async for rl in reduced_logs:
         try:
-            print(f"weblogs_stats_elasticsearch_sink -> rx reduced_logs: <{reduced_logs}>")
-            key = "_".join((reduced_logs.IpAddress, reduced_logs.UserAgent, reduced_logs.Request))
+            print(f"weblogs_stats_elasticsearch_sink -> rx reduced_logs: <{rl}>")
+            key = "_".join((rl.IpAddress, rl.UserAgent, rl.Request))
             json_str_rl = json.dumps(rl)
             print(f"weblogs_stats_elasticsearch_sink -> json reduced_logs: <{json_str_rl}>")
             response = await es.index(
@@ -252,8 +242,8 @@ async def weblogs_stats_elasticsearch_sink(reduced_logs):
 # #
 # # Send stats on that topic for easy monitoring
 # @app.agent(weblogs_stats_topic)
-# async def weblogs_stats_cassandra_sink(stats):
-#     async for reduced_log in stats:
+# async def weblogs_stats_cassandra_sink(reduced_logs):
+#     async for reduced_log in reduced_logs:
 #         try:
 #             #
 #             # Publish for Cassandra type DB, save in Cassandra?

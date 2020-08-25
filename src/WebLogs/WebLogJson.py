@@ -3,7 +3,7 @@ import faust
 from src.WebLogs.WebLogEntry import WebLogEntry
 
 
-class WebLogJson(faust.Record, serializer='json'):
+class WebLogJson(faust.Record):
     Timestamp: str
     IpAddress: str
     UserAgent: str
@@ -11,8 +11,3 @@ class WebLogJson(faust.Record, serializer='json'):
     Status: int
     LoByte: int
     HiByte: int
-
-    def default(self, o):
-        return o.__dict__
-
-
