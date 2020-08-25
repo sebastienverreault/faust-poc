@@ -6,13 +6,15 @@ kafka-elk-down:
 	@docker-compose -f docker/docker-compose.yml down --remove-orphans
 
 # Elasticsearch
-manual-map-es:
-@curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/raw_weblogs'     --data-binary @elasticsearch/raw_es_mapping.json
-@curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/reduced_weblogs' --data-binary @elasticsearch/reduced_es_mapping.json
+manual-map-raw-es:
+	@curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/raw_weblogs'     --data-binary @elasticsearch/raw_es_mapping.json
+manual-reduced-raw-es:
+	@curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/reduced_weblogs' --data-binary @elasticsearch/reduced_es_mapping.json
 
-manual-load-es:
-@curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/raw_weblogs/_bulk'     --data-binary elasticsearch/es_raw_logs.json
-@curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/reduced_weblogs/_bulk' --data-binary elasticsearch/es_reduced_logs.json
+manual-load-raw-es:
+	@curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/raw_weblogs/_bulk'     --data-binary elasticsearch/es_raw_logs.json
+manual-load-reduced-es:
+	@curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/reduced_weblogs/_bulk' --data-binary elasticsearch/es_reduced_logs.json
 
 
 # Faust
