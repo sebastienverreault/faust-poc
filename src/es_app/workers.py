@@ -213,19 +213,20 @@ async def reduce_weblogs_tokens(tokens):
 async def weblogs_elasticsearch_sink(reduced_logs):
     async for rl in reduced_logs:
         try:
-            key = "_".join((reduced_logs.IpAddress, reduced_logs.UserAgent, reduced_logs.Request))
-            json_str_entry = json.dumps(rl)
-            print(json_str_entry)
-            response = await es.index(
-                index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,
-                #doc_type=REDUCED_ELASTICSEARCH_DOCUMENT_TYPE,
-                id=key,
-                body=json_str_entry)
-            failed = response.get("_shards", {}).get("failed")
-            if failed:
-                logging.error("Elasticsearch request failed with the following error: " +
-                              str(response) + "The parameters were, id/key: " + str(key) +
-                              " body/value: " + str(json_str_entry))
+            print(reduced_logs)
+            # key = "_".join((reduced_logs.IpAddress, reduced_logs.UserAgent, reduced_logs.Request))
+            # json_str_entry = json.dumps(rl)
+            # print(json_str_entry)
+            # response = await es.index(
+            #     index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,
+            #     #doc_type=REDUCED_ELASTICSEARCH_DOCUMENT_TYPE,
+            #     id=key,
+            #     body=json_str_entry)
+            # failed = response.get("_shards", {}).get("failed")
+            # if failed:
+            #     logging.error("Elasticsearch request failed with the following error: " +
+            #                   str(response) + "The parameters were, id/key: " + str(key) +
+            #                   " body/value: " + str(json_str_entry))
         except ElasticsearchException as e:
             logging.exception("An Elasticsearch exception has been caught :" + str(e) +
                               "The parameters are: id/key - " + str(key) + json_str_entry)

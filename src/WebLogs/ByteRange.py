@@ -91,6 +91,6 @@ def BRReduce(br_list: List[ByteRange], new_br: ByteRange):
 
     if gotMerged:
         if len(br_list) > 1:
-            Reduce(br_list.pop())
+            BRReduce(br_list.pop())
     else:
         br_list.append(new_br)
