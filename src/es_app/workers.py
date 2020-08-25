@@ -5,10 +5,13 @@ import traceback
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.exceptions import ElasticsearchException
 
+from src.cassandra.cassandra import CassandraDriver
+
 from src.WebLogs.ReducedLog import ReducedLog
 from src.WebLogs.ByteRange import ByteRange
 from src.WebLogs.ByteRange import BRReduce
 from src.WebLogs.WebLogEntry import WebLogEntry
+from src.WebLogs.WebLogJson import WebLogJson,GetJson
 
 from typing import List
 
@@ -17,8 +20,6 @@ import os
 
 #
 # Starting
-from src.WebLogs.WebLogJson import WebLogJson
-from src.cassandra.cassandra import CassandraDriver
 
 logging.info("Starting WebLogs stream processor worker")
 
@@ -161,7 +162,7 @@ async def weblogs_elasticsearch_sink(tokens):
         try:
             key = entry.Key
             print(f"weblogs_elasticsearch_sink -> rx entry: <{entry}>")
-            json_str_entry = json.dumps(WebLogJson.GetJson(entry))
+            json_str_entry = json.dumps(GetJson(entry))
             print(json_str_entry)
             print(f"weblogs_elasticsearch_sink -> json entry: <{json_str_entry}>")
             response = await es.index(
