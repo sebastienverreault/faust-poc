@@ -96,8 +96,8 @@ weblogs_tokens = app.Table('weblogs_tokens', key_type=str, default=list)
 
 #
 # Read weblogs data to simulate sequential arrivals
-# filename = os.path.abspath(r"./src/data/sample.log")
-filename = os.path.abspath(r"./src/data/test_sample.log")
+filename = os.path.abspath(r"./src/data/sample.log")
+# filename = os.path.abspath(r"./src/data/test_sample.log")
 
 
 #
