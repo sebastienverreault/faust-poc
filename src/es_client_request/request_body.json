@@ -1,0 +1,9 @@
+{ "query": {
+    "bool": {
+      "must": [
+        { "match": { "ip_address": { "query": "<ip_address>" } } },
+        { "match": { "user_agent": { "query": "<user_agent>" } } },
+        { "match": { "request": { "query": "<request>" } } },
+        { "range": { "lo_byte": { "lte": <lo_byte> } } },
+        { "range": { "hi_byte": { "gte": <hi_byte> } } }
+      ] } } }
