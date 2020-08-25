@@ -1,20 +1,22 @@
 {
   "mappings": {
-    "properties": {
-      "IpAddress": {
-        "type": "text"
-      },
-      "UserAgent": {
-        "type": "text"
-      },
-      "Request": {
-        "type": "text"
-      },
-      "LoByte": {
-        "type": "integer_range"
-      },
-      "HiByte": {
-        "type": "integer_range"
+    "_doc": {
+      "properties": {
+        "IpAddress": {
+          "type": "text"
+        },
+        "UserAgent": {
+          "type": "text"
+        },
+        "Request": {
+          "type": "text"
+        },
+        "LoByte": {
+          "type": "integer_range"
+        },
+        "HiByte": {
+          "type": "integer_range"
+        }
       }
     }
   }

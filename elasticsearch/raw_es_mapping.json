@@ -1,26 +1,28 @@
 {
   "mappings": {
-    "properties": {
-      "Timestamp": {
-        "type": "text"
-      },
-      "IpAddress": {
-        "type": "text"
-      },
-      "UserAgent": {
-        "type": "text"
-      },
-      "request": {
-        "type": "text"
-      },
-      "status": {
-        "type": "integer"
-      },
-      "LoByte": {
-        "type": "integer_range"
-      },
-      "HiByte": {
-        "type": "integer_range"
+    "_doc": {
+      "properties": {
+        "timestamp": {
+          "type": "text"
+        },
+        "ip_address": {
+          "type": "text"
+        },
+        "user_agent": {
+          "type": "text"
+        },
+        "request": {
+          "type": "text"
+        },
+        "status": {
+          "type": "integer"
+        },
+        "lo_byte": {
+          "type": "integer"
+        },
+        "hi_yte": {
+          "type": "integer"
+        }
       }
     }
   }
