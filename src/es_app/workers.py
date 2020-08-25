@@ -88,7 +88,7 @@ def main() -> None:
 weblogs_topic = app.topic("weblogs", value_type=str)
 weblogs_token_topic = app.topic("weblogs_tokens", value_type=WebLogEntry)
 weblogs_stats_topic = app.topic("weblogs_stats", value_type=ReducedLog)
-weblogs_persistence_topic = app.topic("weblogs_persistence_stream", value_type=List)
+weblogs_persistence_topic = app.topic("weblogs_persistence", value_type=List)
 
 #
 # Define a table to keep our state
@@ -143,6 +143,7 @@ async def tokenize_weblogs(weblogs):
         try:
             tokens = weblog.split('\t')
             entry = WebLogEntry.Map(tokens)
+            print(f"Sent entry:<{entry}>")
             if entry.Valid:
                 await weblogs_token_topic.send(value=entry)
         except Exception as ex:
@@ -158,8 +159,10 @@ async def weblogs_elasticsearch_sink(tokens):
     async for entry in tokens.group_by(WebLogEntry.Key):
         try:
             key = entry.Key
+            print(f"weblogs_elasticsearch_sink -> rx entry: <{entry}>")
             json_str_entry = json.dumps(entry)
             print(json_str_entry)
+            print(f"weblogs_elasticsearch_sink -> json entry: <{json_str_entry}>")
             response = await es.index(
                 index=RAW_ELASTICSEARCH_DOCUMENT_INDEX,
                 #doc_type=RAW_ELASTICSEARCH_DOCUMENT_TYPE,
@@ -210,26 +213,26 @@ async def reduce_weblogs_tokens(tokens):
 # Listen on the reduced topic to get filtered entries
 # Package them and send to elasticsearch for indexing there
 @app.agent(weblogs_stats_topic)
-async def weblogs_elasticsearch_sink(reduced_logs):
+async def weblogs_stats_elasticsearch_sink(reduced_logs):
     async for rl in reduced_logs:
         try:
-            print(reduced_logs)
-            # key = "_".join((reduced_logs.IpAddress, reduced_logs.UserAgent, reduced_logs.Request))
-            # json_str_entry = json.dumps(rl)
-            # print(json_str_entry)
-            # response = await es.index(
-            #     index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,
-            #     #doc_type=REDUCED_ELASTICSEARCH_DOCUMENT_TYPE,
-            #     id=key,
-            #     body=json_str_entry)
-            # failed = response.get("_shards", {}).get("failed")
-            # if failed:
-            #     logging.error("Elasticsearch request failed with the following error: " +
-            #                   str(response) + "The parameters were, id/key: " + str(key) +
-            #                   " body/value: " + str(json_str_entry))
+            print(f"weblogs_stats_elasticsearch_sink -> rx reduced_logs: <{reduced_logs}>")
+            key = "_".join((reduced_logs.IpAddress, reduced_logs.UserAgent, reduced_logs.Request))
+            json_str_rl = json.dumps(rl)
+            print(f"weblogs_stats_elasticsearch_sink -> json reduced_logs: <{json_str_rl}>")
+            response = await es.index(
+                index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,
+                #doc_type=REDUCED_ELASTICSEARCH_DOCUMENT_TYPE,
+                id=key,
+                body=json_str_rl)
+            failed = response.get("_shards", {}).get("failed")
+            if failed:
+                logging.error("Elasticsearch request failed with the following error: " +
+                              str(response) + "The parameters were, id/key: " + str(key) +
+                              " body/value: " + str(json_str_rl))
         except ElasticsearchException as e:
             logging.exception("An Elasticsearch exception has been caught :" + str(e) +
-                              "The parameters are: id/key - " + str(key) + json_str_entry)
+                              "The parameters are: id/key - " + str(key) + json_str_rl)
 
 # #
 # # Send stats on that topic for easy monitoring
