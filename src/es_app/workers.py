@@ -11,7 +11,7 @@ from src.WebLogs.ReducedLog import ReducedLog
 from src.WebLogs.ByteRange import ByteRange
 from src.WebLogs.ByteRange import BRReduce
 from src.WebLogs.WebLogEntry import WebLogEntry
-from src.WebLogs.WebLogJson import WebLogJson,GetJson
+from src.WebLogs.WebLogJson import WebLogJson
 
 from typing import List
 
@@ -151,6 +151,18 @@ async def tokenize_weblogs(weblogs):
         except Exception as ex:
             track = traceback.format_exc()
             print(track)
+
+
+def GetJson(obj: WebLogEntry):
+    return WebLogJson(
+        Timestamp=str(obj.Timestamp),
+        IpAddress=obj.IpAddress,
+        UserAgent=obj.UserAgent,
+        Request=obj.Request,
+        Status=obj.Status,
+        LoByte=obj.LoByte,
+        HiByte=obj.HiByte
+    )
 
 
 #
