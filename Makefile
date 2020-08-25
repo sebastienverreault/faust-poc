@@ -8,9 +8,15 @@ kafka-elk-down:
 # Elasticsearch
 manual-map-raw-es:
 	@curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/raw_weblogs'     --data-binary @elasticsearch/raw_es_mapping.json
-manual-reduced-raw-es:
+manual-map-reduced-es:
 	@curl -XPUT -H 'Content-Type: application/json' 'localhost:9200/reduced_weblogs' --data-binary @elasticsearch/reduced_es_mapping.json
 
+manual-drop-map-raw-es:
+	@curl -XDELETE -H 'Content-Type: application/json' 'localhost:9200/raw_weblogs'     --data-binary @elasticsearch/raw_es_mapping.json
+manual-drop-map-reduced-es:
+	@curl -XDELETE -H 'Content-Type: application/json' 'localhost:9200/reduced_weblogs' --data-binary @elasticsearch/reduced_es_mapping.json
+
+# Could be used with standalone to produce a dump for both
 manual-load-raw-es:
 	@curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/raw_weblogs/_bulk'     --data-binary elasticsearch/es_raw_logs.json
 manual-load-reduced-es:
