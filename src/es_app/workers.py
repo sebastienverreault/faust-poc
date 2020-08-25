@@ -62,9 +62,9 @@ es = AsyncElasticsearch([ELASTIC_SEARCH_CONF])
 drv = CassandraDriver()
 drv.createsession()
 drv.setlogger()
-rows = drv.session.execute('SELECT ip_address, user_agent, request, byte_ranges FROM logs')
-for user_row in rows:
-    print(f"{user_row.ip_address}, {user_row.user_agent}, {user_row.request}, {user_row.byte_ranges}")
+# rows = drv.session.execute('SELECT ip_address, user_agent, request, byte_ranges FROM logs')
+# for user_row in rows:
+#     print(f"{user_row.ip_address}, {user_row.user_agent}, {user_row.request}, {user_row.byte_ranges}")
 # drv.createkeyspace('weblogs')
 # drv.create_table()
 
