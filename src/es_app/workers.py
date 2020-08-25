@@ -141,7 +141,7 @@ async def tokenize_weblogs(weblogs):
         try:
             tokens = weblog.split('\t')
             entry = WebLogEntry.Map(tokens)
-            print(f"Sent entry:<{entry}>")
+            logging.info(f"Sent entry:<{entry}>")
             if entry.Valid:
                 await weblogs_token_topic.send(key=entry.Key, value=entry)
         except Exception as ex:
@@ -178,7 +178,7 @@ async def reduce_weblogs_tokens(tokens):
     # New Keys in the dictionary should already be a WebLogEntry, so just process it
     async for entry in tokens.group_by(WebLogEntry.Key):
         try:
-            # Print entry
+            # Log entry
             data = f"reduce_weblogs_tokens rx entry : <{entry.Key}, {entry.LoByte}, {entry.HiByte}>"
             logging.info(data)
 
@@ -188,7 +188,7 @@ async def reduce_weblogs_tokens(tokens):
             BRReduce(byte_range_list, new_byte_range)
             weblogs_tokens[entry.Key] = byte_range_list
 
-            # Print result
+            # Log result
             state = f"<{entry.Key}, {[str(x) for x in byte_range_list]}>"
             logging.info(state)
             #
@@ -196,7 +196,7 @@ async def reduce_weblogs_tokens(tokens):
             rl = ReducedLog(IpAddress=entry.IpAddress, UserAgent=entry.UserAgent, Request=entry.Request,
                             LoByte=entry.LoByte, HiByte=entry.HiByte)
 
-            logging.info(f"reduce_weblogs_tokens tx rl: <{rl}>")
+            logging.info(f"reduce_weblogs_tokens tx entry: <{rl}>")
             # Send info on stats monitoring topic
             await weblogs_stats_topic.send(value=rl)
         except Exception as ex:
