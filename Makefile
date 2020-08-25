@@ -22,6 +22,11 @@ manual-load-raw-es:
 manual-load-reduced-es:
 	@curl -XPOST -H 'Content-Type: application/json' 'localhost:9200/reduced_weblogs/_bulk' --data-binary elasticsearch/es_reduced_logs.json
 
+manual-drop-raw-es:
+	@curl -XDELETE 'localhost:9200/raw_weblogs'
+manual-drop-reduced-es:
+	@curl -XDELETE 'localhost:9200/reduced_weblogs'
+
 
 # Faust
 run-es-app:
