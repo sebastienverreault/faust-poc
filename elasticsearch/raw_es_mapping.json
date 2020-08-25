@@ -2,26 +2,26 @@
   "mappings": {
     "_doc": {
       "properties": {
-        "timestamp": {
+        "Timestamp": {
           "type": "text"
         },
-        "ip_address": {
+        "IpAddress": {
           "type": "text"
         },
-        "user_agent": {
+        "UserAgent": {
           "type": "text"
         },
-        "request": {
+        "Request": {
           "type": "text"
         },
-        "status": {
+        "Status": {
           "type": "integer"
         },
-        "lo_byte": {
-          "type": "integer"
+        "LoByte": {
+          "type": "integer_range"
         },
-        "hi_yte": {
-          "type": "integer"
+        "HiByte": {
+          "type": "integer_range"
         }
       }
     }
