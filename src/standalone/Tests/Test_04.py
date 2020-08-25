@@ -9,6 +9,7 @@ import statsmodels as sm
 from src.WebLogs.WebLogEntry import WebLogEntry
 from src.WebLogs.WebLogProcessor import WebLogProcessor
 from src.cassandra.cassandra import CassandraDriver
+from src.excel.excel import ExcelDriver
 
 
 class Test_04(object):
@@ -49,6 +50,18 @@ class Test_04(object):
                 reducer = processor.stats[reducer_key]
                 lgv2 = reducer.GetAReducedLogV2()
                 drv.insert_data('Test_04', lgv2)
+        except Exception as ex:
+            track = traceback.format_exc()
+            print(track)
+
+        # Create a csv (json?) file with our results
+        try:
+            xldrv = ExcelDriver()
+            for reducer_key in processor.stats:
+                reducer = processor.stats[reducer_key]
+                lgv2 = reducer.GetAReducedLogV2()
+                xldrv.add_record_to_file(lgv2)
+            xldrv.save()
         except Exception as ex:
             track = traceback.format_exc()
             print(track)

@@ -15,7 +15,7 @@ from src.WebLogs.WebLogJson import WebLogJson
 
 from typing import List
 
-import json
+# import json
 import os
 
 #
@@ -163,8 +163,8 @@ async def weblogs_elasticsearch_sink(tokens):
             key = entry.Key
             print(f"weblogs_elasticsearch_sink -> rx entry: <{entry}>")
             print(f"weblogs_elasticsearch_sink -> rx entry.__dict__: <{entry.__dict__}>")
-            print(f"weblogs_elasticsearch_sink -> rx json.dumps(entry.__dict__): <{json.dumps(entry.__dict__)}>")
-            json_str_entry = json.dumps(entry.__dict__)
+            print(f"weblogs_elasticsearch_sink -> rx faust.utils.json.dumps(entry.__dict__): <{faust.utils.dumps(entry.__dict__)}>")
+            json_str_entry = faust.utils.json.dumps(entry.__dict__)
             print(json_str_entry)
             print(f"weblogs_elasticsearch_sink -> json entry: <{json_str_entry}>")
             response = await es.index(
@@ -223,7 +223,7 @@ async def weblogs_stats_elasticsearch_sink(reduced_logs):
         try:
             print(f"weblogs_stats_elasticsearch_sink -> rx reduced_logs: <{rl}>")
             key = "_".join((rl.IpAddress, rl.UserAgent, rl.Request))
-            json_str_rl = json.dumps(rl)
+            json_str_rl = faust.utils.json.dumps(rl)
             print(f"weblogs_stats_elasticsearch_sink -> json reduced_logs: <{json_str_rl}>")
             response = await es.index(
                 index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX,

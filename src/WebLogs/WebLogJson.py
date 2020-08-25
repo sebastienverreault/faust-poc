@@ -3,7 +3,7 @@ import faust
 from src.WebLogs.WebLogEntry import WebLogEntry
 
 
-class WebLogJson(faust.Record):
+class WebLogJson(faust.Record, serializer='json'):
     Timestamp: str
     IpAddress: str
     UserAgent: str
