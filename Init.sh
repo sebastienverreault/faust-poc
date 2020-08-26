@@ -98,6 +98,12 @@ curl -X GET "localhost:9200/_cat/nodes?v&pretty"
 
 
 #
+# client run
+# python -m src.es_client_request -i <ip_address> -u "<user_agent>" -r "<request>" -l <lo_byte> -h <hi_byte>
+python -m src.es_client_request -i 63.110.194.22 -u "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101 Firefox/78.0" -r "/6d8a9754-e8c7-4193-8491-58b2122c1c10" -l 0 -h 289
+
+
+#
 # Tricky setings with es? bootstrap checks
 #
 # max virtual memory areas vm.max_map_count [65530] is too low, increase to at least [262144]

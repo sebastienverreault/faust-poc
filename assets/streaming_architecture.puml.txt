@@ -21,21 +21,22 @@ rectangle "DataCollector\n\n" as datasource
 rectangle "Tokenizer\n\n" as tokenizer
 rectangle "Reducer\n\n" as reducer
 
-queue "<$kafka>\nkafka1" as kafka1
-queue "<$kafka>\nkafka2" as kafka2
-queue "<$kafka>\nkafka3" as kafka3
+queue "<$kafka>\nkafka\nraw text" as kafka1
+queue "<$kafka>\nkafka\nfiltered" as kafka2
+queue "<$kafka>\nkafka\nreduced" as kafka3
 database "<$cassandra>\nCassandra" as cassandra
 
 file -> datasource
 datasource -> kafka1
 kafka1 -> tokenizer
-tokenizer --> kafka2
-tokenizer -> kafka3
+tokenizer -> kafka2
 
 Logstash --> kafka1
-kafka2 -> ElasticSearch
+kafka2 --> ElasticSearch
 ElasticSearch -> Kibana
 
-kafka3 -> reducer
-reducer -> cassandra
+kafka2 -> reducer
+reducer -> kafka3
+kafka3 -> cassandra
+kafka3 -> ElasticSearch
 @enduml
