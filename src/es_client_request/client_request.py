@@ -1,6 +1,7 @@
 import logging
 import sys, getopt
 import traceback
+import json
 
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.exceptions import ElasticsearchException
@@ -13,8 +14,6 @@ logging.info("Starting ClientRequest")
 
 #
 # Configures
-FAUST_APP_NAME = "weblogs-stream-processor"
-KAFKA_BROKERS = "kafka://127.0.0.1:9092"
 ELASTICSEARCH_HOST = "127.0.0.1"	#os.environ["ELASTICSEARCH_HOST"]
 ELASTICSEARCH_USER = ""				#os.environ["ELASTICSEARCH_USER"]
 ELASTICSEARCH_PASS = ""				#os.environ["ELASTICSEARCH_PASS"]
@@ -42,7 +41,7 @@ es = AsyncElasticsearch([ELASTIC_SEARCH_CONF])
 
 #
 # convenience func for launching the app
-def main(argv) -> None:
+async def main(argv) -> None:
     try:
         ipAddress = ''
         userAgent = ''
@@ -51,13 +50,22 @@ def main(argv) -> None:
         loByte = ''
         hiByte = ''
 
+        # print(argv)
+
+        if len(argv) < 3:
+            print(f'{argv[0]} ' + '-i <ip_address> -u <user_agent> -r <request> -l <lo_byte> -h <hi_byte>')
+            print('or')
+            print(f'{argv[0]} ' + '-k <key:ip_address_user_agent_request> -l <lo_byte> -h <hi_byte>')
+            sys.exit(2)
+
         try:
-            opts, args = getopt.getopt(argv, "ki:u:r:l:h:", ["key=", "ip_address=", "user_agent=", "request=", "lo_byte=", "hi_byte="])
+            opts, args = getopt.getopt(argv[1:], "ki:u:r:l:h:", ["key=", "ip_address=", "user_agent=", "request=", "lo_byte=", "hi_byte="])
         except getopt.GetoptError:
             print(f'{argv[0]} ' + '-i <ip_address> -u <user_agent> -r <request> -l <lo_byte> -h <hi_byte>')
             print('or')
             print(f'{argv[0]} ' + '-k <key:ip_address_user_agent_request> -l <lo_byte> -h <hi_byte>')
             sys.exit(2)
+
         for opt, arg in opts:
             if opt in ('-k', '--key'):
                 key = arg
@@ -74,78 +82,107 @@ def main(argv) -> None:
 
         if not key:
             key = "_".join((ipAddress, userAgent, request))
+        print(f"Key=<{key}>\n")
 
+        json_ip = json.dumps(ipAddress)
+        json_ua = json.dumps(userAgent)
+        json_rq = json.dumps(request)
         # No range so we see what we got
         raw_search_body = {
-            "query": {
+            'query': {
                 "bool": {
                   "must": [
-                    { "match": { "ip_address": { "query": ipAddress } } },
-                    { "match": { "user_agent": { "query": userAgent } } },
-                    { "match": { "request": { "query": request } } },
+                    { "match_phrase": { "IpAddress": json_ip } },
+                    { "match_phrase": { "UserAgent": json_ua } },
+                    { "match_phrase": { "Request": json_rq } },
                   ] } } }
+        # print(raw_search_body)
 
         # No range so we see what we did
         reduced_search_body = {
             "query": {
                 "bool": {
                   "must": [
-                    { "match": { "ip_address": { "query": ipAddress } } },
-                    { "match": { "user_agent": { "query": userAgent } } },
-                    { "match": { "request": { "query": request } } },
+                    { "match_phrase": { "IpAddress": json_ip } },
+                    { "match_phrase": { "UserAgent": json_ua } },
+                    { "match_phrase": { "Request": json_rq } },
                   ] } } }
+        # print(reduced_search_body)
 
         # No range so we see if we can answer the request right
         reduced_search_body_with_range = {
             "query": {
                 "bool": {
                   "must": [
-                    { "match": { "ip_address": { "query": ipAddress } } },
-                    { "match": { "user_agent": { "query": userAgent } } },
-                    { "match": { "request": { "query": request } } },
-                    { "range": { "lo_byte": { "lte": loByte } } },
-                    { "range": { "hi_byte": { "gte": hiByte } } }
+                    { "match_phrase": { "IpAddress": json_ip } },
+                    { "match_phrase": { "UserAgent": json_ua } },
+                    { "match_phrase": { "Request": json_rq } },
+                    { "range": { "LoByte": { "lte": int(loByte) } } },
+                    { "range": { "HiByte": { "gte": int(hiByte) } } }
                   ] } } }
+        # print(reduced_search_body_with_range)
 
+        foundInRaw = 0
+        foundInReduced = 0
+        foundInReducedWithRange = 0
         # Get raw data first
-        response = es.search(index=RAW_ELASTICSEARCH_DOCUMENT_INDEX, body=raw_search_body)
+        response = await es.search(index=RAW_ELASTICSEARCH_DOCUMENT_INDEX, body=raw_search_body)
         failed = response.get("_shards", {}).get("failed")
         if failed:
             logging.error("Elasticsearch request failed with the following error: " +
                           str(response) + "The parameters were, id/key: " + str(key) +
                           " body/value: " + str(request))
         else:
-            print("Got %d Raw Hits:" % response['hits']['total']['value'])
+            print("Got %d Raw Hits:" % response['hits']['total'])
+            foundInRaw = response['hits']['total']
             for hit in response['hits']['hits']:
-                print(hit)
-                # print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
+                # print(hit)
+                print("%(IpAddress)s \t %(UserAgent)s \t %(Request)s: \t %(LoByte)s %(HiByte)s" % hit["_source"])
 
         # Get reduced then
-        response = es.search(index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX, body=reduced_search_body)
+        response = await es.search(index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX, body=reduced_search_body)
         failed = response.get("_shards", {}).get("failed")
         if failed:
             logging.error("Elasticsearch request failed with the following error: " +
                           str(response) + "The parameters were, id/key: " + str(key) +
                           " body/value: " + str(request))
         else:
-            print("Got %d Reduced Hits:" % response['hits']['total']['value'])
+            print("Got %d Reduced Hits:" % response['hits']['total'])
+            foundInReduced = response['hits']['total']
             for hit in response['hits']['hits']:
-                print(hit)
-                # print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
+                # print(hit)
+                print("%(IpAddress)s \t %(UserAgent)s \t %(Request)s: \t %(LoByte)s %(HiByte)s" % hit["_source"])
 
         # Finally get a reduced with range answer
-        response = es.search(index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX, body=reduced_search_body_with_range)
+        response = await es.search(index=REDUCED_ELASTICSEARCH_DOCUMENT_INDEX, body=reduced_search_body_with_range)
         failed = response.get("_shards", {}).get("failed")
         if failed:
             logging.error("Elasticsearch request failed with the following error: " +
                           str(response) + "The parameters were, id/key: " + str(key) +
                           " body/value: " + str(request))
         else:
-            print("Got %d Reduced with range Hits:" % response['hits']['total']['value'])
+            print("Got %d Reduced with range Hits:" % response['hits']['total'])
+            foundInReducedWithRange = response['hits']['total']
             for hit in response['hits']['hits']:
-                print(hit)
-                # print("%(timestamp)s %(author)s: %(text)s" % hit["_source"])
+                # print(hit)
+                print("%(IpAddress)s \t %(UserAgent)s \t %(Request)s: \t %(LoByte)s %(HiByte)s" % hit["_source"])
+
+        print("\n")
+        if foundInRaw != 0 and foundInReduced != 0 and foundInReducedWithRange != 0:
+            print(f"TRUE - Data was fully delivered!")
+        elif foundInRaw != 0 and foundInReduced != 0 and foundInReducedWithRange == 0:
+            print(f"FALSE - Data was only partially delivered...")
+        elif foundInRaw != 0 and foundInReduced == 0 and foundInReducedWithRange == 0:
+            print(f"ERROR - Processed data missing... contact support ;)")
+        elif foundInRaw == 0 and foundInReduced == 0 and foundInReducedWithRange == 0:
+            print(f"ERROR - No data exist that match the combined <ip_address>, <user_agent> and <request>.")
+        else:
+            print(f"ERROR - Unforeseen system problem... contact support ;)")
+        print("\n")
 
     except ElasticsearchException as ex:
         logging.exception("An Elasticsearch exception has been caught :" + str(ex) +
                           "The parameters are: id/key - " + str(key) + request)
+
+    finally:
+        await es.close()
